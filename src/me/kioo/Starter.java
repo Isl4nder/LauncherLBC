@@ -15,8 +15,6 @@ public class Starter {
 			String strMaxMem = (Configuration.getProperty("maximumMemValue") != null) ? String.valueOf(Configuration.getProperty("maximumMemValue")) : String.valueOf(OptionPanel.MAXIMUM_MEM_VALUE_DEFAULT);
 			String strMinMem = (Configuration.getProperty("minimumMemValue") != null) ? String.valueOf(Configuration.getProperty("minimumMemValue")) : String.valueOf(OptionPanel.MINIMUM_MEM_VALUE_DEFAULT);
 			
-			
-			
 			ArrayList<String> params = new ArrayList<String>();
 			params.add("java");
 			params.add("-Xms"+strMinMem+"m");

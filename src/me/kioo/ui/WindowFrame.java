@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.net.URLEncoder;
 
 import javax.imageio.ImageIO;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import me.kioo.Launcher;
-import me.kioo.core.updater.Updater;
 import me.kioo.core.launcher.LauncherApplet;
+import me.kioo.core.updater.Updater;
 import me.kioo.util.Configuration;
 import me.kioo.util.Util;
 
@@ -22,14 +24,18 @@ public class WindowFrame extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private static final int VERSION = 13;
+	public static boolean READY_TO_LAUNCH = false;
 
 	private Launcher launcher;
 	private MainPanel mainPanel;
+	private Updater updater;
+	public ProgressDialog progressDialog;
 
 	/**
 	 * Constructor
+	 * @throws IOException 
 	 */
-	public WindowFrame() {
+	public WindowFrame() throws IOException {
 		
         System.setProperty("minecraft.applet.WrapperClass", LauncherApplet.class.getCanonicalName());
         
@@ -76,6 +82,25 @@ public class WindowFrame extends JFrame {
 				System.exit(0);
 			}
 		});
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				/* Démarrage de l'interface graphique et du SwingWorker. */
+				try {
+					final ProgressDialog progressDialog = new ProgressDialog(WindowFrame.this);
+					Thread t = new Thread(new Runnable() {
+						public void run() {
+							progressDialog.setVisible(true);
+						}
+					});
+					t.start();
+					Updater updaterWorker = new Updater(WindowFrame.this, progressDialog);
+					updaterWorker.execute();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+            }
+        });
 	}
 	
 	/**
@@ -145,9 +170,7 @@ public class WindowFrame extends JFrame {
 	 * Affiche l'erreur 
 	 * @param error
 	 */
-	public void setMessage(String error) {
-		//this.mainPanel.setMessage(error);
-		//validate();
+	public void setMessage(String text) {
 	}
 	
    public static void main(String[] args) throws IOException {
@@ -158,9 +181,6 @@ public class WindowFrame extends JFrame {
 			System.err.println("Exception, " + e.toString());
 		}
 		
-		Updater updater = new  Updater();
-		updater.update();
-		updater.removeOldFile();
 		WindowFrame windowFrame = new WindowFrame();
 		
 		/*if (args.length >= 3) {

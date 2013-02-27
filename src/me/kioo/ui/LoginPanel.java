@@ -25,21 +25,22 @@ import me.kioo.ui.component.TransparentPanel;
 
 public class LoginPanel extends TexturedPanel {
 	private static final long serialVersionUID = 1L;
-	private static final int PANEL_SIZE = 80;
+	private static final int PANEL_SIZE = 120;
 	
 	//private WindowFrame windowFrame;
 	private TransparentLabel lblLogin = new TransparentLabel("Login:");
 	private TransparentLabel lblPassword = new TransparentLabel("Mot de passe:");
-	private JButton btnExecute = new TransparentButton("Lancer");
 	private JButton btnOption = new TransparentButton("Options");
 	private JButton btnCredit = new TransparentButton("Crédits");
 	
+	public JButton btnExecute = new TransparentButton("Lancer");
 	public JTextField txtfieldLogin = new JTextField(20);															// en public pour avoir acces dans les autres classes sans trop se faire chier
 	public JPasswordField txtfieldPassword = new JPasswordField(20);									// en public pour avoir acces dans les autres classes sans trop se faire chier
+	private WindowFrame windowFrame;
 	
 	public LoginPanel(final WindowFrame windowFrame) {
 		super();
-		//this.windowFrame = windowFrame;
+		this.windowFrame = windowFrame;
 		
 		// quelques propriétés
 		this.setPreferredSize(new Dimension(PANEL_SIZE, PANEL_SIZE));
@@ -59,11 +60,13 @@ public class LoginPanel extends TexturedPanel {
 		// action listener pour les fields login et password ainsi que le button launchs (pour listen les touches entrée et le click)
 		ActionListener al = new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				new Thread(new Runnable() {
-					public void run() {
-						windowFrame.login(txtfieldLogin.getText(), new String(txtfieldPassword.getPassword()));
-					}
-				}).start();
+				if (WindowFrame.READY_TO_LAUNCH) {
+					new Thread(new Runnable() {
+						public void run() {
+							LoginPanel.this.windowFrame.login(txtfieldLogin.getText(), new String(txtfieldPassword.getPassword()));
+						}
+					}).start();
+				}
 			}
 		};
 		this.txtfieldLogin.addActionListener(al);

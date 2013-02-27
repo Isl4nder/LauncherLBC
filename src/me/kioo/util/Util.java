@@ -29,13 +29,13 @@ import javax.net.ssl.HttpsURLConnection;
 import me.kioo.ui.LoginPanel;
 
 public class Util {
-	private static String workName = "lbcTechnoDev";
+	private static String workName = "lbcTechno";
 	private static final String STR_CONFIGURATION = "config.properties";
 	private static final String STR_CONFIG_INSIDE = "/me/kioo/res/option.properties";
 	private static File workingDirectory;
 	private static File binDirectory;
 	private static File configurationFile;
-	private static File configInsideFile;
+	private static InputStream configInsideIn;
 	private static Boolean lzmaSupported;
 	private static Boolean pack200Supported;
 	
@@ -116,17 +116,17 @@ public class Util {
 		return configurationFile;
 	}
 	
-	public static File getConfigInsideFile() throws URISyntaxException {
-		if (Util.configInsideFile != null) {
-			return Util.configInsideFile;
+	public static InputStream getConfigInsideFile() throws URISyntaxException {
+		if (Util.configInsideIn != null) {
+			return Util.configInsideIn;
 		}
-		URL url = Util.class.getResource(Util.STR_CONFIG_INSIDE);
-		File configInsideFile = new File(url.toURI());
-		if(!configInsideFile.exists()) {
-			throw new RuntimeException("Le répertoire binaire n'a pas pu être créé: " + binDirectory);
-		}
-		Util.configurationFile = configInsideFile;
-		return configInsideFile;
+		InputStream configInsideIn = Util.class.getResourceAsStream(Util.STR_CONFIG_INSIDE);
+		//File configInsideFile = new File(in);
+		/*if(!configInsideFile.exists()) {
+			throw new RuntimeException("Le fichier de configuration est absent: " + configInsideFile);
+		}*/
+		Util.configInsideIn = configInsideIn;
+		return configInsideIn;
 	}
 	
 	/**

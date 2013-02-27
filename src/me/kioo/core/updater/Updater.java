@@ -14,6 +14,8 @@
  */
 package me.kioo.core.updater;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +31,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import javax.swing.SwingWorker;
+
+import me.kioo.ui.ProgressDialog;
+import me.kioo.ui.WindowFrame;
 import me.kioo.util.ConfigInside;
 import me.kioo.util.Util;
 
@@ -36,14 +42,30 @@ import me.kioo.util.Util;
  *
  * @author skyghis
  */
-public class Updater {
+public class Updater extends SwingWorker<Integer, String> {
 
     private static final int READ_BUFFER_SIZE = 32000;
     private static final MessageDigest SHA1 = Updater.initializeMessageDigestSha1("SHA1");
 	private Properties filesList;
 	private String updateUrl;
-
-    public Updater() throws IOException {
+	public ProgressDialog progressDialog;
+	private WindowFrame windowFrame;
+	
+	
+	public Updater(WindowFrame windowFrame, ProgressDialog progressDialog) throws IOException {
+		this.windowFrame = windowFrame;
+    	this.progressDialog =progressDialog;
+    	
+    	/* On ajoute un écouteur de barre de progression. */
+        addPropertyChangeListener(new PropertyChangeListener() {
+        	@Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if("progress".equals(evt.getPropertyName())) {
+                	Updater.this.progressDialog.setValue((Integer) evt.getNewValue());
+                }
+            }
+        });
+    	
     	this.updateUrl = ConfigInside.getProperty("update_url");
          String updatePropertiesFile = ConfigInside.getProperty("update_properties_file");
          
@@ -57,28 +79,34 @@ public class Updater {
         	 input.close();
          }
     }
-    
-    public void update() {
+
+	public void update(float progressStart, float progressEnd) {
         try {
             final File workingDirectory = Util.getWorkingDirectory();
+            
+            final int size = this.filesList.size();
+            float step = (progressEnd - progressStart) / size;
 
             for (Map.Entry<Object, Object> entry : this.filesList.entrySet()) {
+            	progressStart += step;
+                setProgress((int) progressStart);
+                this.progressDialog.refresh();
             	
                 String strFile = String.valueOf(entry.getKey());
                 String strHash = String.valueOf(entry.getValue());
-
+                
                 File file = new File(workingDirectory, strFile);
                 if ((!file.exists())
                 || !hashFile(file).equals(strHash)) {
                     if (!file.exists()) {
-                        System.out.println("create " + strFile);
+                        System.out.println("create " + file.toString());
                     } else {
-                        System.out.println("update " + strFile);
+                        System.out.println("update " + file.toString());
                     }
                     URL url = new URL(this.updateUrl + URLEncoder.encode(strFile, "UTF-8").replace("%2F", "/").replace("+", "%20"));
                     Updater.copyToFile(url, file);
                 } else {
-                    System.out.println("skip   " + strFile);
+                    System.out.println("skip   " + file.toString());
                 }
             }
 
@@ -88,38 +116,45 @@ public class Updater {
         }
     }
     
-    public void removeOldFile() {
+    public void remove(float progressStart, float progressEnd) {
     	File workDirectory = Util.getWorkingDirectory();
     	String strDirectory = ConfigInside.getProperty("update_directory_checkup");
     	StringTokenizer tokenizer = new StringTokenizer(strDirectory, ",");
     	
+    	double step = (progressEnd - progressStart) / tokenizer.countTokens()+1;
+    	
     	while (tokenizer.hasMoreTokens()) {
+        	progressStart += step;
+            setProgress((int) progressStart);
+    		
     		final File folder = new File(workDirectory, tokenizer.nextToken());
     		if (folder.exists()) {
-    			this.listFileForFolder(folder, true);	
+    			this.listFileToRemove(folder, true);
     		}
     	}
     	
     	// pour le répertoire bin
-    	/*String strDirectoryBin = ConfigInside.getProperty("update_directory_checkup_no_recursive");
+    	String strDirectoryBin = ConfigInside.getProperty("update_directory_checkup_no_recursive");
     	final File folder = new File(workDirectory, strDirectoryBin);
 		if (folder.exists()) {
-			this.listFileForFolder(folder, false);	
-		}*/
+			setProgress((int) progressEnd);
+			this.listFileToRemove(folder, false);	
+		}
     }
     
-    private void listFileForFolder(final File folder, Boolean recursive) {
+    private void listFileToRemove(final File folder, Boolean recursive) {
 
 		for (final File fileEntry : folder.listFiles()) {
 			System.out.println("Lecture du fichier/dossier " + fileEntry.getAbsolutePath());
 			if ((fileEntry.isDirectory())
 			&& (recursive)) {
-				this.listFileForFolder(fileEntry, true);
+				this.listFileToRemove(fileEntry, true);
 			} else {
 				if ((fileEntry.isFile())
 				&& (fileEntry.canWrite())
 				&& (!this.checkExistence(fileEntry))) {
 					fileEntry.delete();
+					System.out.println("delete " + fileEntry.toString());
 				}
 			}
 		}
@@ -214,6 +249,24 @@ public class Updater {
             return MessageDigest.getInstance(algorithm);
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException(ex);
+        }
+    }
+
+	@Override
+	public Integer doInBackground() throws Exception {
+		update(0, 100);
+		remove(0, 100);
+		return 100;
+	}
+	
+    @Override
+    protected void done() {
+        try {
+            setProgress(100);
+            this.progressDialog.setVisible(false);
+            this.windowFrame.READY_TO_LAUNCH = true;
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
 }

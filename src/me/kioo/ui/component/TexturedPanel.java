@@ -16,11 +16,12 @@ public class TexturedPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private Image img;
 	private Image bgImage;
+	private static int SIZE = 169; 
 
 	public TexturedPanel() {
 		setOpaque(true);
 		try {
-			this.bgImage = ImageIO.read(Launcher.class.getResource("/me/kioo/res/dirt.png")).getScaledInstance(32, 32, 16);
+			this.bgImage = ImageIO.read(Launcher.class.getResource("/me/kioo/res/texture.jpg")).getScaledInstance(TexturedPanel.SIZE, TexturedPanel.SIZE, 16);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -39,9 +40,9 @@ public class TexturedPanel extends JPanel {
 			this.img = createImage(w, h);
 
 			Graphics g = this.img.getGraphics();
-			for (int x = 0; x <= w / 32; x++) {
-				for (int y = 0; y <= h / 32; y++)
-					g.drawImage(this.bgImage, x * 32, y * 32, null);
+			for (int x = 0; x <= w / TexturedPanel.SIZE; x++) {
+				for (int y = 0; y <= h / TexturedPanel.SIZE; y++)
+					g.drawImage(this.bgImage, x * TexturedPanel.SIZE, y * TexturedPanel.SIZE, null);
 			}
 
 			if ((g instanceof Graphics2D)) {

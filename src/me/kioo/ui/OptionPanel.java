@@ -22,6 +22,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import me.kioo.util.ConfigInside;
 import me.kioo.util.Configuration;
 import me.kioo.util.Util;
 
@@ -30,7 +31,8 @@ public class OptionPanel extends JDialog {
 	
 	public static final int MINIMUM_MEM_VALUE_DEFAULT = 512;
 	public static final int MAXIMUM_MEM_VALUE_DEFAULT = 1024;
-	
+	public static final int MAXIMUM_MEM_MAX = ((System.getProperty("sun.arch.data.model").equals("32")) ? Integer.parseInt(ConfigInside.getProperty("max_mem_32")) : Integer.parseInt(ConfigInside.getProperty("max_mem_64")));
+			
 	private JCheckBox chckbxRememberMe;
 	private JCheckBox checkbxLaunchAuto;
 	private JSlider sliderMinimum;
@@ -175,7 +177,7 @@ public class OptionPanel extends JDialog {
 		sliderMaximum.setPaintTicks(true);
 		sliderMaximum.setMinorTickSpacing(512);
 		sliderMaximum.setSnapToTicks(true);
-		sliderMaximum.setMaximum(8192);
+		sliderMaximum.setMaximum(OptionPanel.MAXIMUM_MEM_MAX);
 		sliderMaximum.setMinimum(1024);
 		sliderMaximum.setValue((Configuration.getProperty("maximumMemValue") != null) ? Integer.parseInt(Configuration.getProperty("maximumMemValue")) : OptionPanel.MAXIMUM_MEM_VALUE_DEFAULT );
 		

@@ -1,8 +1,6 @@
 package me.kioo.util;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -16,7 +14,7 @@ import java.util.Properties;
 public class ConfigInside{
 	
 	private Properties properties;
-	private File file;
+	private InputStream inputStream;
 
 	/**
 	 * Loader singleton de Configuration
@@ -39,7 +37,7 @@ public class ConfigInside{
 	 */
 	private ConfigInside() {
 		try {
-			file = Util.getConfigInsideFile();
+			inputStream = Util.getConfigInsideFile();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -49,11 +47,11 @@ public class ConfigInside{
 	}
 	
     public void load() {
-        if(file == null ) {
+        if(inputStream == null ) {
             throw new IllegalArgumentException("File is not set");
         }
         try {
-        	properties.load(new BufferedInputStream((InputStream) new FileInputStream(file)));
+        	properties.load(new BufferedInputStream(inputStream));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
