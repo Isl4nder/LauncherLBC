@@ -24,7 +24,6 @@ public class Launcher implements Runnable {
 	
 	//public Map<String, String> customParameters = new HashMap<String, String>();
 	
-	
 	public Launcher(WindowFrame windowFrame, /*final Loader loader, */ String userName, String sessionId) {
 		//this.loader = loader;
 		this.userName = userName;
